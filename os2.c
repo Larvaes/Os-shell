@@ -16,31 +16,52 @@ void removeLineFeed(char *buff){     //for cut Linefeed("\n") at the at of strin
     if(buff[length - 1] == '\n')
         buff[length - 1] = '\0';
 }
+void signal_handle(){
+    printf("\nCtrl + c detect : Terminate program\n");
+    exit(0);
+}
 
 void interactiveMode(char *command_all){
     char *token;
     char command[20];
-    char *arg[10];  
+    char sub_command[10][20];
+    char *arg[10][10];  
     int index_arg = 0;
+    int num_arg = 0;
     int status;
     strcpy(command,path); //copy path("/bin/..(command)..") to command for execute 
-
-    token = strtok(command_all, " "); //substring for each argument
-    while(token != NULL){
-        arg[index_arg] = token; 
-        token = strtok(NULL, " "); 
-        index_arg++;       
+    if(strstr(command_all,";") != NULL){ //check if mutiple command exist (call from batch)
+        token = strtok(command_all, ";"); //substring for each command in line
+        while(token != NULL){
+            strcpy(sub_command[num_arg],token);
+            removeLineFeed(sub_command[num_arg++]);
+            token = strtok(NULL, ";");       
+        }
     }
-    arg[index_arg] = NULL;  //insert NULL into argument array
-    strcat(command,arg[0]); //concatenate command to path for execute
-    int pid = fork(); //fork new process and use child process for execute command
-    if(pid == 0){               
-        execvp(command,arg);
-        perror("Error! command not found ");    //print error to stderr if occured   
-        exit(1);
+    else{
+        strcpy(sub_command[0],command_all);
+        num_arg++;
     }
-    wait(&status);
-    strcpy(command,path);  //clear command string back to "/bin/"      
+    //loop execute command in line (1 if call from interactive, multiple if call from batch and ";" exist)
+    for(int i = 0 ; i < num_arg; i++){ 
+        token = strtok(sub_command[i], " "); //substring for each argument
+        while(token != NULL){
+            arg[i][index_arg] = token; 
+            token = strtok(NULL, " "); 
+            index_arg++;       
+        }
+        arg[i][index_arg] = NULL;  //insert NULL into argument array
+        strcat(command,arg[i][0]); //concatenate command to path for execute
+        int pid = fork(); //fork new process and use child process for execute command
+        if(pid == 0){               
+            execvp(command,arg[i]);
+            perror("Error! command not found ");    //print error to stderr if occured   
+            exit(1);
+        }
+        wait(&status);
+        strcpy(command,path);  //clear command string back to "/bin/" 
+        index_arg = 0;
+    }   
 
 }
 
@@ -53,7 +74,6 @@ void batchMode(char *file){
     while(fgets(buff,BUFLEN,fp) != NULL){   //read command in each line of file
         removeLineFeed(buff);
         interactiveMode(buff);    //call interactive mode for each command line
-    
             
     }
 }
@@ -67,6 +87,7 @@ int main(){
         char command_all[10][20];
         int cm_index = 0;   
         printf("prompt> ");
+        signal(SIGINT,signal_handle);
         fgets(buff,BUFLEN,stdin); //get input command from user
         removeLineFeed(buff);
         if(!strcmp(buff, "quit")) //check for terminate program
