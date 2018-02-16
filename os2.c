@@ -36,7 +36,7 @@ void interactiveMode(char *command_all){
     int pid = fork(); //fork new process and use child process for execute command
     if(pid == 0){               
         execvp(command,arg);
-        perror("Error! ");    //print error to stderr if occured   
+        perror("Error! command not found ");    //print error to stderr if occured   
         exit(1);
     }
     wait(&status);
