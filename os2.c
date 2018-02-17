@@ -90,7 +90,7 @@ int main(){
         signal(SIGINT,signal_handle);
         fgets(buff,BUFLEN,stdin); //get input command from user
         removeLineFeed(buff);
-        if(!strcmp(buff, "quit")) //check for terminate program
+        if(strstr(buff, "quit") != NULL) //check for terminate program
             break;
         token = strtok(buff, ";");
         while(token != NULL){  //loop substring for each command divide by ";"
