@@ -20,6 +20,15 @@ void signal_handle(){
     printf("\nCtrl + c detect : Terminate program\n");
     exit(0);
 }
+char* removeWhiteSpace(char *buff){
+    for(int i = 0; i < strlen(buff); i++){
+        if(buff[i] != ' '){
+            buff += i;
+            break;
+        }
+    }
+    return buff;
+}
 
 void interactiveMode(char *command_all){
     char *token;
@@ -69,7 +78,8 @@ void interactiveMode(char *command_all){
 
 }
 
-void batchMode(char *file){        
+void batchMode(char *file){ 
+    file = removeWhiteSpace(file); //delete whitespace before path if exist
     FILE *fp = fopen(file,"r");    //open file from first argument 
     if(fp == NULL){
         perror("Open file ERROR "); //check if file cannot open 
@@ -103,9 +113,8 @@ int main(){
             token = strtok(NULL, ";");
         }
         for(int i = 0; i < cm_index; i++){  //loop execute each command
-            if(strstr(command_all[i],"./") != NULL){ //check if command is "./" for switch to batch mode
-                token = strtok(command_all[i]," "); //delete whitespace before "./" if exist
-                batchMode(token);     
+            if(strstr(command_all[i],"/") != NULL){ //check if command is "./" for switch to batch mode
+                batchMode(command_all[i]);     
             }     
             else
                 interactiveMode(command_all[i]); 
