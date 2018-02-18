@@ -42,6 +42,7 @@ void interactiveMode(char *command_all){
         strcpy(sub_command[0],command_all);
         num_arg++;
     }
+    
     //loop execute command in line (1 if call from interactive, multiple if call from batch and ";" exist)
     for(int i = 0 ; i < num_arg; i++){ 
         token = strtok(sub_command[i], " "); //substring for each argument
@@ -49,6 +50,9 @@ void interactiveMode(char *command_all){
             arg[i][index_arg] = token; 
             token = strtok(NULL, " "); 
             index_arg++;       
+        }
+        if(strstr(sub_command[i], "quit") != NULL){ //check for terminate program
+            _exit(1);
         }
         arg[i][index_arg] = NULL;  //insert NULL into argument array
         strcat(command,arg[i][0]); //concatenate command to path for execute
